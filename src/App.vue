@@ -1,26 +1,127 @@
 <template>
-  <img alt="Vue logo" src="./assets/logo.png">
-  <HelloWorld msg="Welcome to Your Vue.js App"/>
+    <div v-if="mainLoaded">
+        <LoginForm v-if="!loggedIn" @submit="submit"/>
+        <div v-else>
+            <div class="container-lg" id="main-container">
+                <NavBar/>
+                <div class="my-3">
+                    <router-view/>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div v-else>
+        <div class="spinner-border m-5" role="status">
+            <span class="visually-hidden">Loading...</span>
+        </div>
+    </div>
+
+    <ModalWindow :show="showModal" :message="modalMessage" id="loginModalWindow" @close="showModal = false">
+        <template v-slot:title>Message</template>
+        <template v-slot:btn-text>Ok</template>
+    </ModalWindow>
 </template>
 
-<script>
-import HelloWorld from './components/HelloWorld.vue'
+<script setup>
 
-export default {
-  name: 'App',
-  components: {
-    HelloWorld
-  }
+import {computed, inject, onMounted, provide, ref} from 'vue'
+import {useStore} from 'vuex'
+// import {useRouter} from 'vue-router';
+
+// @ is an alias to /src
+import LoginForm from '@/components/LoginForm.vue'
+import ModalWindow from '@/components/ModalWindow.vue'
+import NavBar from '@/components/NavBar.vue'
+
+let showModal = ref(false);
+const modalMessage = ref("");
+
+const mainLoaded = ref(false);
+
+const axios = inject('axios')
+const updateAxiosParams = inject('updateAxiosParams');
+const store = useStore();
+// const router = useRouter();
+
+const loggedIn = computed(() => store.state.loggedIn);
+
+// const typeOptions = ref({});
+// const formComponents = shallowRef({});
+// const adminComponents = shallowRef({});
+
+function showModalWindow(t) {
+    showModal.value = true;
+    modalMessage.value = t;
 }
+
+provide('showModalWindow', showModalWindow);
+// provide('typeOptions', typeOptions);
+// provide('formComponents', formComponents);
+// provide('adminComponents', adminComponents);
+
+function submit({username, password}) {
+    axios.get("?", {
+        "params": {"action": "userLogin", "username": username, "password": password}
+    })
+        .then((response) => {
+            let sess_id = response.data.session_id;
+            store.commit("sessionOnly", {"sess_id": sess_id, "admin": username === "admin"});
+
+            loadUserInfo();
+            // axios.get("?", {"params": {"action": "userinfo"}})
+            //     .then(() => {
+            //         console.log("Not storing session ID");
+            //         store.commit("login", {"sess_id": null, "admin": username === "admin"});
+            //         router.push('/');
+            //     })
+            //     .catch((reason) => {
+            //         if (reason.response.status === 401) {
+            //             console.log("Storing ID");
+            //             store.commit("login", {"sess_id": sess_id, "admin": username === "admin"});
+            //             loadUserInfo();
+            //             router.push('/');
+            //         }
+            //     });
+        })
+        .catch((reason) => {
+            showModal.value = true;
+            modalMessage.value = reason.response.data?.error
+                ? reason.response.data.error
+                : reason.response.statusText;
+        });
+}
+
+async function loadUserInfo() {
+    await axios.get("?", {"params": {
+            "action": "task",
+            "type": "creender",
+            "sub": "getInfo",
+            ...updateAxiosParams()}})
+        .then((response) => {
+            store.commit("login", response.data);
+        })
+        .catch((reason) => {
+            store.commit('logout');
+            if (reason.response && reason.response.status !== 401) {
+                showModal.value = true;
+                modalMessage.value = reason.response.statusText;
+            }
+        })
+        .then(() => {
+            // mainLoaded.value = true;
+        });
+}
+
+onMounted(async function () {
+    await loadUserInfo();
+    mainLoaded.value = true;
+});
+
+
 </script>
 
 <style>
-#app {
-  font-family: Avenir, Helvetica, Arial, sans-serif;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-  text-align: center;
-  color: #2c3e50;
-  margin-top: 60px;
+#main-container {
+    padding: 0;
 }
 </style>
