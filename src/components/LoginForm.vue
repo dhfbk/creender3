@@ -69,7 +69,9 @@
                                     </div>
                                 </div>
                                 <div class="mb-3">
-                                    <button v-on:click.stop.prevent="enterDemo" class="btn btn-dark w-100">Enter demo</button>
+                                    <button v-on:click.stop.prevent="enterDemo" class="btn btn-dark w-100">
+                                        Enter demo
+                                    </button>
                                 </div>
                             </div>
                         </div>
@@ -83,7 +85,7 @@
 </template>
 
 <script setup>
-import {defineProps, defineEmits, ref, onMounted, inject} from 'vue'
+import {defineEmits, ref, onMounted, inject} from 'vue'
 
 const emit = defineEmits(['submit', 'enterDemo'])
 
