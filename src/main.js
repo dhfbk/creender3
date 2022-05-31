@@ -24,8 +24,8 @@ app.provide('updateAxiosParams', (params) => {
     if (params == undefined) {
         params = {};
     }
-    if (localStorage.getItem('php_sess_id')) {
-        params["session_id"] = localStorage.getItem('php_sess_id');
+    if (localStorage.getItem('creender_php_sess_id')) {
+        params["session_id"] = localStorage.getItem('creender_php_sess_id');
     }
     return params;
 });
