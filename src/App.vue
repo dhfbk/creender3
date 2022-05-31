@@ -1,6 +1,7 @@
 <template>
     <div v-if="mainLoaded">
-        <LoginForm v-if="!loggedIn" @submit="submit"/>
+        <!--        <p>{{ loggedIn }}</p>-->
+        <LoginForm v-if="!loggedIn" @enterDemo="enterDemo" @submit="submit"/>
         <div v-else>
             <div class="container-lg" id="main-container">
                 <NavBar/>
@@ -41,13 +42,8 @@ const mainLoaded = ref(false);
 const axios = inject('axios')
 const updateAxiosParams = inject('updateAxiosParams');
 const store = useStore();
-// const router = useRouter();
 
 const loggedIn = computed(() => store.state.loggedIn);
-
-// const typeOptions = ref({});
-// const formComponents = shallowRef({});
-// const adminComponents = shallowRef({});
 
 function showModalWindow(t) {
     showModal.value = true;
@@ -59,29 +55,37 @@ provide('showModalWindow', showModalWindow);
 // provide('formComponents', formComponents);
 // provide('adminComponents', adminComponents);
 
+function enterDemo({id, password}) {
+    axios.post("?", {
+        "action": "task",
+        "type": "creender",
+        "sub": "enterDemo",
+        "id": id,
+        "password": password,
+        ...updateAxiosParams()
+    })
+        .then((response) => {
+            let sess_id = response.data.session_id;
+            store.commit("demoLogin", {"sess_id": sess_id});
+            loadUserInfo();
+        })
+        .catch((reason) => {
+            let debugText = reason.response.statusText + " - " + reason.response.data.error;
+            showModalWindow(debugText);
+        })
+        .then(() => {
+            // mainLoaded.value = true;
+        });
+}
+
 function submit({username, password}) {
     axios.get("?", {
         "params": {"action": "userLogin", "username": username, "password": password}
     })
         .then((response) => {
             let sess_id = response.data.session_id;
-            store.commit("sessionOnly", {"sess_id": sess_id, "admin": username === "admin"});
-
+            store.commit("login", {"sess_id": sess_id});
             loadUserInfo();
-            // axios.get("?", {"params": {"action": "userinfo"}})
-            //     .then(() => {
-            //         console.log("Not storing session ID");
-            //         store.commit("login", {"sess_id": null, "admin": username === "admin"});
-            //         router.push('/');
-            //     })
-            //     .catch((reason) => {
-            //         if (reason.response.status === 401) {
-            //             console.log("Storing ID");
-            //             store.commit("login", {"sess_id": sess_id, "admin": username === "admin"});
-            //             loadUserInfo();
-            //             router.push('/');
-            //         }
-            //     });
         })
         .catch((reason) => {
             showModal.value = true;
@@ -92,13 +96,21 @@ function submit({username, password}) {
 }
 
 async function loadUserInfo() {
-    await axios.get("?", {"params": {
+    await axios.get("?", {
+        "params": {
             "action": "task",
             "type": "creender",
             "sub": "getInfo",
-            ...updateAxiosParams()}})
+            ...updateAxiosParams()
+        }
+    })
         .then((response) => {
-            store.commit("login", response.data);
+            store.commit("loadOptions", response.data);
+            if (response.data.demo) {
+                store.commit("demoLogin", response.data);
+            } else {
+                store.commit("login", response.data);
+            }
         })
         .catch((reason) => {
             store.commit('logout');

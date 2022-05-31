@@ -30,7 +30,8 @@
                     </div>
                     <div class="form-group" v-if="!store.state.options.do_not_ask_for_comment">
                         <label for="message-text" class="col-form-label">{{ store.state.options.comment }}</label>
-                        <textarea class="form-control" id="message-text" v-model="formData.comment" @keyup="checkData"></textarea>
+                        <textarea class="form-control" id="message-text" v-model="formData.comment"
+                                  @keyup="checkData"></textarea>
                     </div>
                     <div class="alert alert-danger mt-3" :class="{'d-none': hideCommentWarning}">
                         Insert a comment.
@@ -56,10 +57,10 @@
         Loading
     </p>
     <div v-else-if="nextPhoto" class="row">
-        <div class="col-md-6 p-0 p-sm-4">
+        <div class="col-md-7 col-lg-6 p-0 p-sm-4">
             <img :src="getImageLink()" class="img-fluid" id="main-image" alt="Creender image" title="Creender image">
         </div>
-        <div class="col-md-6 p-4 text-center">
+        <div class="col-md-5 col-lg-6 p-4 text-center">
             <h5 class="d-sm-block display-5">{{ store.state.options.description }}</h5>
             <div id="photo-form">
                 <div v-if="submitting">
@@ -89,19 +90,22 @@
                              id="btn-no">No
                         </div>
                     </div>
+                    <div class="mt-4">
+                        <button class="btn btn-outline-secondary" @click.prevent="report">
+                            <i class="bi bi-flag"></i>
+                            <span class="ms-2">Report this picture as offensive or inappropriate.</span>
+                        </button>
+                    </div>
                 </template>
-
-                <!--                <input type="hidden" name="value" v-model="yesData.value"/>-->
-                <!--                <input type="hidden" name="comment" v-model="yesData.comment"/>-->
-                <!--                <input type="hidden" name="no" v-model="buttons.clickedNo"/>-->
-                <!--                <input type="hidden" name="id" v-model="photo.id"/>-->
             </div>
         </div>
 
 
     </div>
-    <div v-else>
-        No more photos
+    <div class="row" v-else>
+        <div class="col p-3 mx-3">
+            No more photos
+        </div>
     </div>
 
 </template>
@@ -211,6 +215,15 @@ function userClickedNo() {
     }
 
     formData.value = {...startData};
+    submitForm();
+}
+
+function report() {
+    if (!confirm("By choosing this option, you will report the educators that this photo hurted or offended you for some reason. Do you confirm?")) {
+        return;
+    }
+    formData.value = {...startData};
+    formData.value.value = -2;
     submitForm();
 }
 
