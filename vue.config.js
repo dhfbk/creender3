@@ -1,5 +1,5 @@
 const { defineConfig } = require('@vue/cli-service')
 module.exports = defineConfig({
-  publicPath: "/creender/",
+  publicPath: process.env.VUE_PUBLIC_PATH,
   transpileDependencies: true
 })
