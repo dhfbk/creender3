@@ -263,6 +263,7 @@ function reset() {
     setTimeout(function () {
         buttons.value.okToClick = true;
     }, time);
+    formData.value = {...startData};
     buttons.value.okToClick = false;
     buttons.value.clickedNo = false;
     buttons.value.clickedConfirm = false;
