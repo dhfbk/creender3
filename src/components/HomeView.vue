@@ -58,7 +58,7 @@
     </p>
     <div v-else-if="nextPhoto" class="row">
         <div class="col-md-7 col-lg-6 p-0 p-sm-4">
-            <img :src="getImageLink()" class="img-fluid" id="main-image" alt="Creender image" title="Creender image">
+            <img :src="nextPhotoURL" class="img-fluid" id="main-image" alt="Creender image" title="Creender image">
         </div>
         <div class="col-md-5 col-lg-6 p-4 text-center">
             <h5 class="d-sm-block display-5">{{ store.state.options.description }}</h5>
@@ -128,6 +128,7 @@ const hideCommentWarning = ref(true);
 const submitting = ref(false);
 
 const nextPhoto = ref({});
+const nextPhotoURL = ref("");
 const buttons = ref({
     okToClick: false,
     clickedNo: false,
@@ -279,7 +280,8 @@ function getImageLink() {
     // console.log(process.env.VUE_APP_AXIOS_URL);
     // console.log(axios);
     // console.log(u);
-    return `${process.env.VUE_APP_AXIOS_URL}?${u}`;
+    let r = Math.random();
+    nextPhotoURL.value = `${process.env.VUE_APP_AXIOS_URL}?${u}&r=${r}`;
 }
 
 async function getNextPhoto() {
@@ -297,6 +299,7 @@ async function getNextPhoto() {
             } else {
                 nextPhoto.value = null;
             }
+            getImageLink();
         })
         .catch((reason) => {
             let debugText = reason.response.statusText + " - " + reason.response.data.error;
